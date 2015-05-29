@@ -1,0 +1,53 @@
+create database if not exists jabely default character set=utf8  default collate=utf8_general_ci;
+
+DROP TABLE IF EXISTS `sequence`;
+CREATE TABLE `sequence` (
+  `name` varchar(64) NOT NULL DEFAULT '' COMMENT '主键',
+  `value` bigint(20) unsigned NOT NULL COMMENT '值',
+  `gmt_modified` datetime NOT NULL COMMENT '修改时间',
+  PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='主键生成表';
+
+DROP TABLE IF EXISTS `jabely_user_info`;
+CREATE TABLE `jabely_user_info` (
+  `user_id` bigint(20) unsigned NOT NULL COMMENT '账号id',
+  `mobile_phone` varchar(32) NOT NULL COMMENT '用于登陆账号的手机',
+  `identify_card` varchar(128) DEFAULT NULL COMMENT '用户身份证号',
+  `alipay_account` varchar(128) DEFAULT NULL COMMENT '用户支付宝账号',
+  `bank_name` varchar(32) DEFAULT NULL COMMENT '用户银行名称',
+  `bank_account` varchar(128) DEFAULT NULL COMMENT '用户银行卡卡号',
+  `password` varchar(256) NOT NULL COMMENT '登录密码',
+  `status` tinyint(3) NOT NULL COMMENT '状态位',
+  `options` bigint(20) unsigned DEFAULT NULL COMMENT '位标记',
+  `feature` varchar(2000) DEFAULT NULL COMMENT 'kv扩展',
+  `version` bigint(20) unsigned NOT NULL COMMENT '乐观锁',
+  `gmt_create` datetime NOT NULL COMMENT '创建时间',
+  `gmt_modified` datetime NOT NULL COMMENT '修改时间',
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `idx_unique_mobile_phone` (`mobile_phone`),
+  KEY `idx_gmt_create` (`gmt_create`),
+  KEY `idx_gmt_modified` (`gmt_modified`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户信息';
+
+DROP TABLE IF EXISTS `jabely_user_weixin_info`;
+CREATE TABLE `jabely_user_weixin_info` (
+  `user_id` bigint(20) unsigned NOT NULL COMMENT '用户id，来自于login表主键',
+  `union_id` varchar(128) DEFAULT NULL COMMENT '微信跨平台的id',
+  `open_id` varchar(128) DEFAULT NULL COMMENT '微信openid',
+  `nick_name` varchar(64) DEFAULT NULL COMMENT '微信昵称',
+  `sex` varchar(1) DEFAULT NULL COMMENT '微信用户性别',
+  `city` varchar(6) DEFAULT NULL COMMENT '微信用户所在市',
+  `province` varchar(6) DEFAULT NULL COMMENT '微信用户所在省',
+  `country` varchar(6) DEFAULT NULL COMMENT '微信用户所在国家',
+  `head_img_url` varchar(256) DEFAULT NULL COMMENT '微信用户头像地址',
+  `options` bigint(20) unsigned DEFAULT NULL COMMENT '位标记',
+  `feature` varchar(2000) DEFAULT NULL COMMENT 'kv扩展',
+  `version` bigint(20) unsigned NOT NULL COMMENT '乐观锁',
+  `gmt_create` datetime NOT NULL COMMENT '创建时间',
+  `gmt_modified` datetime NOT NULL COMMENT '修改时间',
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `idx_unique_id` (`union_id`),
+  UNIQUE KEY `idx_open_id` (`open_id`),
+  KEY `idx_gmt_create` (`gmt_create`),
+  KEY `idx_gmt_modified` (`gmt_modified`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户微信信息';

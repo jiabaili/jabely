@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config description="">
+	<group>
+		<property name="jabely.loggingRoot" defaultValue="/home/admin/logs/" description="CLIENT_KEY" />
+		<property name="jabely.loggingLevel" defaultValue="debug" description="CLIENT_KEY" />
+		<property name="jabely.weixin.appid" defaultValue="wx623bac0461aefa64" description="微信APPID" />
+		<property name="jabely.weixin.appsecret" defaultValue="d758aa5e2b584486bd684e5618d257a9" description="微信APPSECRET" />
+		<property name="jabely.productionMode" defaultValue="false" description="开发调试/线上生成，模式"></property>
+	</group>
+	<script>
+		<generate template="WEB-INF/web.xml" charset="UTF-8" />
+		<generate template="WEB-INF/webx.xml" charset="UTF-8" />
+		<generate template="WEB-INF/common/uris.xml" charset="UTF-8" />
+	</script>
+</config>

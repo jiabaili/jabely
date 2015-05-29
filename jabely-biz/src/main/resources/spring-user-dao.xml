@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
+       default-autowire="byName">
+
+    <bean id="userSequence" class="com.jabely.framework.sequence.impl.DefaultSequence">
+        <property name="sequenceDao" ref="sequenceDao" />
+        <property name="name" value="user_info_id" />
+    </bean>
+    <bean id="userInfoDao" class="com.jabely.biz.user.dao.impl.UserInfoDaoImpl" />
+    <bean id="userWeixinInfoDao" class="com.jabely.biz.user.dao.impl.UserWeixinInfoDaoImpl" />
+</beans>

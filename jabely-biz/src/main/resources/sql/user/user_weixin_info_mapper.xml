@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jabely.biz.user.dao.IUserWeixinInfoDao">
+    <resultMap type="com.jabely.biz.user.dao.domain.UserWeixinInfoDO" id="UserWeixinInfoResultMap">
+        <result column="user_id" property="userId" />
+        <result column="union_id" property="unionId" />
+        <result column="open_id" property="openId" />
+        <result column="nick_name" property="nickName" />
+        <result column="sex" property="sex" />
+        <result column="city" property="city" />
+        <result column="province" property="province" />
+        <result column="country" property="country" />
+        <result column="head_img_url" property="headImgUrl" />
+        <result column="options" property="options" />
+        <result column="feature" property="feature" />
+        <result column="version" property="version" />
+        <result column="gmt_create" property="gmtCreate" />
+        <result column="gmt_modified" property="gmtModified" />
+    </resultMap>
+
+    <sql id="user_weixin_info_colums">
+        user_id,
+        union_id,
+        open_id,
+        nick_name,
+        sex,
+        city,
+        province,
+        country,
+        head_img_url,
+        options,
+        feature,
+        version,
+        gmt_create,
+        gmt_modified
+    </sql>
+
+    <sql id="where_queryCondition">
+        <where>
+            <if test="userId != null">
+                user_id = #{userId}
+            </if>
+            <if test="unionId != null">
+                and union_id = #{unionId}
+            </if>
+            <if test="openId != null">
+                and open_id = #{openId}
+            </if>
+            <if test="nickName != null">
+                and nick_name like CONCAT('%',#{nickName},'%')
+            </if>
+            <if test="sex != null">
+                and sex = #{sex}
+            </if>
+            <if test="city != null">
+                and city = #{city}
+            </if>
+            <if test="province != null">
+                and province = #{province}
+            </if>
+            <if test="country != null">
+                and country = #{country}
+            </if>
+            <if test="options != null">
+               <![CDATA[ and options & #{options} = #{options} ]]>
+            </if>
+        </where>
+    </sql>
+
+    <select id="countUserWeixinInfo" parameterType="com.jabely.biz.user.dao.domain.query.QueryUserWeixinInfoDO" resultType="int">
+        select 
+            count(user_id)
+        from 
+            jabely_user_weixin_info
+        <include refid="where_queryCondition"/>
+    </select>
+    
+    <select id="queryListForPage" resultMap="UserWeixinInfoResultMap" parameterType="com.jabely.biz.user.dao.domain.query.QueryUserWeixinInfoDO">
+        select 
+            <include refid="user_weixin_info_colums"/>
+        from 
+            jabely_user_weixin_info
+        <include refid="where_queryCondition"/>
+        <if test="needPagination">limit #{start}, #{pageSize}</if>
+    </select>
+
+    <select id="queryUserWeixinInfoByPrimaryKey" resultMap="UserWeixinInfoResultMap">
+        select
+            <include refid="user_weixin_info_colums"/>
+        from
+            jabely_user_weixin_info
+        where
+            user_id = #{userId}
+    </select>
+    
+    <insert id="insertUserWeixinInfo" parameterType="com.jabely.biz.user.dao.domain.UserWeixinInfoDO">
+        insert into jabely_user_weixin_info (
+            <include refid="user_weixin_info_colums"/>
+        ) values (
+            #{userId},
+            #{unionId},
+            #{openId},
+            #{nickName},
+            #{sex},
+            #{city},
+            #{province},
+            #{country},
+            #{headImgUrl},
+            #{status},
+            #{options},
+            #{feature},
+            #{version},
+            now(),
+            now()
+        )
+    </insert>
+    <update id="updateUserWeixinInfo" parameterType="com.jabely.biz.user.dao.domain.UserWeixinInfoDO">
+        update jabely_user_weixin_info
+        set
+            gmt_modified = now()
+            <if test="unionId != null ">
+                ,union_id = #{unionId}
+            </if>
+            <if test="openId != null ">
+                ,open_id = #{openId}
+            </if>
+            <if test="nickName != null ">
+                ,nick_name = #{nickName}
+            </if>
+            <if test="sex != null ">
+                ,sex = #{sex}
+            </if>
+            <if test="city != null ">
+                ,city = #{city}
+            </if>
+            <if test="province != null ">
+                ,province = #{province}
+            </if>
+            <if test="country != null ">
+                ,country = #{country}
+            </if>
+            <if test="headImgUrl != null ">
+                ,head_img_url = #{headImgUrl}
+            </if>
+            <if test="options != null ">
+                ,options = #{options}
+            </if>
+            <if test="feature != null ">
+                ,feature = #{feature}
+            </if>
+            <if test="gmtCreate != null ">
+                ,gmt_create = #{gmtCreate}
+            </if>
+            <if test="version != null ">
+                ,version = #{version} + 1
+            </if>
+        where
+            user_id = #{userId}
+        and
+            version = #{version} 
+    </update>
+</mapper>

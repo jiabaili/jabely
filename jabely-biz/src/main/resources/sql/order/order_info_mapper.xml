@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jabely.biz.order.dao.IOrderInfoDao">
+    <resultMap type="com.jabely.biz.order.dao.domain.OrderInfoDO" id="OrderInfoResultMap">
+        <result column="order_id" property="orderId" />
+        <result column="outer_order_id" property="outerOrderId" />
+        <result column="buyer_mobile_phone" property="buyerMobilePhone" />
+        <result column="create_date" property="createDate" />
+        <result column="referal_code" property="referalCode" />
+        <result column="pay_money" property="payMoney" />
+        <result column="rebate_money" property="rebateMoney" />
+        <result column="commission" property="commission" />
+        <result column="logistics_fee" property="logisticsFee" />
+        <result column="status" property="status" />
+        <result column="options" property="options" />
+        <result column="feature" property="feature" />
+        <result column="version" property="version" />
+        <result column="gmt_create" property="gmtCreate" />
+        <result column="gmt_modified" property="gmtModified" />
+    </resultMap>
+    <sql id="order_info_colums">
+        order_id,
+        outer_order_id,
+        buyer_mobile_phone,
+        create_date,
+        referal_code,
+        pay_money,
+        rebate_money,
+        commission,
+        logistics_fee,
+        status,
+        options,
+        feature,
+        version,
+        gmt_create,
+        gmt_modified
+    </sql>
+    <sql id="where_queryCondition">
+        <where>
+            <if test="orderId != null">
+                order_id = #{orderId}
+            </if>
+            <if test="outerOrderId != null">
+                and outer_order_id = #{outerOrderId}
+            </if>
+            <if test="buyerMobilePhone != null">
+                and buyer_mobile_phone = #{buyerMobilePhone}
+            </if>
+            <if test="referalCode != null">
+                and referal_code = #{referalCode}
+            </if>
+            <if test="createDateBegin != null">
+                and create_date >= #{createDateBegin}
+            </if>
+            <if test="createDateEnd != null">
+                <![CDATA[  
+                and create_date <= #{createDateEnd}
+                ]]>
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="options != null">
+               <![CDATA[ and options & #{options} = #{options} ]]>
+            </if>
+        </where>
+    </sql>
+    <select id="countOrderInfo" parameterType="com.jabely.biz.order.dao.domain.query.QueryOrderInfoDO" resultType="int">
+        select 
+            count(order_id)
+        from 
+            jabely_order_info
+        <include refid="where_queryCondition"/>
+    </select>
+    <select id="queryListForPage" resultMap="OrderInfoResultMap" parameterType="com.jabely.biz.order.dao.domain.query.QueryOrderInfoDO">
+        select 
+            <include refid="order_info_colums"/>
+        from 
+            jabely_order_info
+        <include refid="where_queryCondition"/>
+        <if test="needPagination">limit #start#, #pageSize#</if>
+    </select>
+    <select id="queryOrderInfoByPrimaryKey" resultMap="OrderInfoResultMap">
+        select
+            <include refid="order_info_colums"/>
+        from
+            jabely_order_info
+        where
+            user_id = #{userId}
+    </select>
+    <insert id="insertOrderInfo" parameterType="com.jabely.biz.order.dao.domain.OrderInfoDO">
+        insert into jabely_order_info (
+            <include refid="order_info_colums"/>
+        ) values (
+            #{orderId},
+            #{outerOrderId},
+            #{buyerMobilePhone},
+            #{createDate},
+            #{referalCode},
+            #{payMoney},
+            #{rebateMoney},
+            #{commission},
+            #{logisticsFee},
+            #{status},
+            #{options},
+            #{feature},
+            #{version},
+            now(),
+            now()
+        )
+    </insert>
+    <update id="updateOrderInfo" parameterType="com.jabely.biz.order.dao.domain.OrderInfoDO">
+        update jabely_order_info
+        set
+            gmt_modified = now()
+            <if test="unionId != null ">
+                ,union_id = #{unionId}
+            </if>
+            <if test="openId != null ">
+                ,open_id = #{openId}
+            </if>
+            <if test="nickName != null ">
+                ,nick_name = #{nickName}
+            </if>
+            <if test="sex != null ">
+                ,sex = #{sex}
+            </if>
+            <if test="city != null ">
+                ,city = #{city}
+            </if>
+            <if test="province != null ">
+                ,province = #{province}
+            </if>
+            <if test="country != null ">
+                ,country = #{country}
+            </if>
+            <if test="headImgUrl != null ">
+                ,head_img_url = #{headImgUrl}
+            </if>
+            <if test="options != null ">
+                ,options = #{options}
+            </if>
+            <if test="feature != null ">
+                ,feature = #{feature}
+            </if>
+            <if test="gmtCreate != null ">
+                ,gmt_create = #{gmtCreate}
+            </if>
+            <if test="version != null ">
+                ,version = #{version} + 1
+            </if>
+        where
+            user_id = #{userId}
+        and
+            version = #{version} 
+    </update>
+</mapper>

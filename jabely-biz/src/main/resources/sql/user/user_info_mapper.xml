@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jabely.biz.user.dao.IUserInfoDao">
+    <resultMap type="com.jabely.biz.user.dao.domain.UserInfoDO" id="UserInfoResultMap">
+        <result column="user_id" property="userId" />
+        <result column="password" property="password" />
+        <result column="mobile_mobile" property="mobilePhone" />
+        <result column="identify_card" property="identifyCard" />
+        <result column="alipay_account" property="alipayAccount" />
+        <result column="bank_name" property="bankName" />
+        <result column="bank_account" property="bankAccount" />
+        <result column="status" property="status" />
+        <result column="options" property="options" />
+        <result column="feature" property="feature" />
+        <result column="version" property="version" />
+        <result column="gmt_create" property="gmtCreate" />
+        <result column="gmt_modified" property="gmtModified" />
+    </resultMap>
+
+    <sql id="user_info_colums">
+        user_id,
+        mobile_phone,
+        password,
+        identify_card,
+        alipay_account,
+        bank_name,
+        bank_account,
+        status,
+        options,
+        feature,
+        version,
+        gmt_create,
+        gmt_modified
+    </sql>
+
+    <sql id="where_queryCondition">
+        <where>
+            <if test="userId != null">
+                user_id = #{userId}
+            </if>
+            <if test="mobilePhone != null">
+                and mobile_phone = #{mobilePhone}
+            </if>
+            <if test="password != null">
+                and password = #{password}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="options != null">
+               <![CDATA[ and options & #{options} = #{options} ]]>
+            </if>
+        </where>
+    </sql>
+
+    <select id="queryUserInfoByPrimaryKey" resultMap="UserInfoResultMap">
+        select
+            <include refid="user_info_colums"/>
+        from
+            jabely_user_info
+        where
+            user_id = #{userId}
+    </select>
+
+    <insert id="insertUserInfo" parameterType="com.jabely.biz.user.dao.domain.UserInfoDO">
+        insert into jabely_user_info (
+            <include refid="user_info_colums"/>
+        ) values (
+            #{userId},
+            #{mobilePhone},
+            #{password},
+            #{identifyCard},
+            #{alipayAccount},
+            #{bankName},
+            #{bankAccount},
+            #{status},
+            #{options},
+            #{feature},
+            #{version},
+            now(),
+            now()
+        )
+    </insert>
+
+    <update id="updateUserInfo" parameterType="com.jabely.biz.user.dao.domain.UserInfoDO">
+        update jabely_user_info
+        set
+            gmt_modified = now()
+            <if test="userId != null ">
+                ,user_id = #{userId}
+            </if>
+            <if test="password != null ">
+                ,password = #{password}
+            </if>
+            <if test="mobilePhone != null ">
+                ,mobile_phone = #{mobilePhone}
+            </if>
+            <if test="identifyCard != null ">
+                ,identify_card = #{identifyCard}
+            </if>
+            <if test="alipayAccount != null ">
+                ,alipay_account = #{alipayAccount}
+            </if>
+            <if test="bankName != null ">
+                ,bank_name = #{bankName}
+            </if>
+            <if test="bankAccount != null ">
+                ,bank_account = #{bankAccount}
+            </if>
+            <if test="status != null ">
+                ,status = #{status}
+            </if>
+            <if test="options != null ">
+                ,options = #{options}
+            </if>
+            <if test="feature != null ">
+                ,feature = #{feature}
+            </if>
+            <if test="gmtCreate != null ">
+                ,gmt_create = #{gmtCreate}
+            </if>
+            <if test="version != null ">
+                ,version = #{version} + 1
+            </if>
+        where
+            user_id = #{userId}
+        and
+            version = #{version} 
+    </update>
+</mapper>

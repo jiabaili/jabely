@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
+        <encoding>${loggingCharset}</encoding>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern><![CDATA[
+%n%-4r [%d{yyyy-MM-dd HH:mm:ss} %X{productionMode}] - %X{method} %X{requestURIWithQueryString} [ip=%X{remoteAddr}, ref=%X{referrer}, ua=%X{userAgent}, sid=%X{cookie.JSESSIONID}]%n  %-5level %logger{35} - %m%n
+            ]]></pattern>
+        </layout>
+        <filter class="com.alibaba.citrus.logconfig.logback.LevelRangeFilter">
+            <levelMax>INFO</levelMax>
+        </filter>
+    </appender>
+
+    <appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.err</target>
+        <encoding>${loggingCharset}</encoding>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern><![CDATA[
+%n%-4r [%d{yyyy-MM-dd HH:mm:ss} %X{productionMode}] - %X{method} %X{requestURIWithQueryString} [ip=%X{remoteAddr}, ref=%X{referrer}, ua=%X{userAgent}, sid=%X{cookie.JSESSIONID}]%n  %-5level %logger{35} - %m%n
+            ]]></pattern>
+        </layout>
+        <filter class="com.alibaba.citrus.logconfig.logback.LevelRangeFilter">
+            <levelMin>WARN</levelMin>
+        </filter>
+    </appender>
+
+    <appender name="PROJECT" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${loggingRoot}/jabely.log</file>
+        <encoding>${loggingCharset}</encoding>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 每天生成一个日志文件 -->
+            <fileNamePattern>${loggingRoot}/biz.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- 保留30天 -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>
+                <![CDATA[
+                %n%date{yyyy-MM-dd HH:mm:ss} [%X{loginUserType}: %X{loginUserNick}@%X{remoteAddr} - %X{method} %X{requestURIWithQueryString}]%n[UserAgent: %X{userAgent}]%n[Referrer: %X{referrer}]%n%-5level %logger %m%n
+                ]]>
+            </pattern>
+        </encoder>
+    </appender>
+
+    <appender name="BIZ-APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${loggingRoot}/biz.log</file>
+        <encoding>${loggingCharset}</encoding>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 每天生成一个日志文件 -->
+            <fileNamePattern>${loggingRoot}/biz.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- 保留30天 -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>
+                <![CDATA[
+                %n%date{yyyy-MM-dd HH:mm:ss} [%X{loginUserType}: %X{loginUserNick}@%X{remoteAddr} - %X{method} %X{requestURIWithQueryString}]%n[UserAgent: %X{userAgent}]%n[Referrer: %X{referrer}]%n%-5level %logger %m%n
+                ]]>
+            </pattern>
+        </encoder>
+    </appender>
+
+    <appender name="EXP-APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${loggingRoot}/exp.log</file>
+        <encoding>${loggingCharset}</encoding>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 每天生成一个日志文件 -->
+            <fileNamePattern>${loggingRoot}/exp.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- 保留30天 -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>
+                <![CDATA[
+                %n%date{yyyy-MM-dd HH:mm:ss} [%X{loginUserType}: %X{loginUserNick}@%X{remoteAddr} - %X{method} %X{requestURIWithQueryString}]%n[UserAgent: %X{userAgent}]%n[Referrer: %X{referrer}]%n%-5level %logger %m%n
+                ]]>
+            </pattern>
+        </encoder>
+    </appender>
+    
+    <appender name="DB-APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${loggingRoot}/db.log</file>
+        <encoding>${loggingCharset}</encoding>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 每天生成一个日志文件 -->
+            <fileNamePattern>${loggingRoot}/db.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- 保留7天 -->
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>
+                <![CDATA[
+                %n%date{yyyy-MM-dd HH:mm:ss} [%X{loginUserType}: %X{loginUserNick}@%X{remoteAddr} - %X{method} %X{requestURIWithQueryString}]%n[UserAgent: %X{userAgent}]%n[Referrer: %X{referrer}]%n%-5level %logger %m%n
+                ]]>
+            </pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.springframework.jdbc" additivity="false">
+        <level value="${scc.db.logger.level}" />
+        <appender-ref ref="DB-APPENDER" />
+    </logger>
+    <logger name="org.springframework.orm" additivity="false">
+        <level value="${scc.db.logger.level}" />
+        <appender-ref ref="DB-APPENDER" />
+    </logger>
+    <logger name="com.ibatis" additivity="false">
+        <level value="${scc.db.logger.level}" />
+        <appender-ref ref="DB-APPENDER" />
+    </logger>
+    <logger name="java.sql" additivity="false">
+        <level value="${scc.db.logger.level}" />
+        <appender-ref ref="DB-APPENDER" />
+    </logger>
+
+    <logger name="biz" additivity="false">
+        <level value="WARN" />
+        <appender-ref ref="BIZ-APPENDER" />
+    </logger>
+    <logger name="exp" additivity="false">
+        <level value="ERROR" />
+        <appender-ref ref="EXP-APPENDER" />
+    </logger>
+
+    <root>
+        <level value="${loggingLevel}" />
+        <appender-ref ref="STDERR" />
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="PROJECT" />
+    </root>
+</configuration>
