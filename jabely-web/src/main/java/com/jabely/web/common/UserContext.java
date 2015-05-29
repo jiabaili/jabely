@@ -70,7 +70,7 @@ public class UserContext {
 	public static void putWeixinUnionId(String weixinUnionId) {
 		getUser().setWeixinUnionId(weixinUnionId);
 	}
-
+	
 	private static SessionUser getUser() {
 		SessionUser user = userThreadLocal.get();
 		if (user == null) {

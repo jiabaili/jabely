@@ -27,5 +27,5 @@ public interface IUserReadManager {
 	 * @param userId
 	 * @return
 	 */
-	UserInfoDO queryUserLoginInfo(Long userId);
+	UserInfoDO queryUserInfo(Long userId);
 }

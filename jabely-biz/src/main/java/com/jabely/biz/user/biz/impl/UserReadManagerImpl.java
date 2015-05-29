@@ -28,7 +28,7 @@ public class UserReadManagerImpl implements IUserReadManager {
 	}
 
 	@Override
-	public UserInfoDO queryUserLoginInfo(Long userId) {
+	public UserInfoDO queryUserInfo(Long userId) {
 		return null;
 	}
 

@@ -64,13 +64,10 @@ public class UserContextInitValve extends AbstractValve {
 	private Set<String> noNeedMobileUrls;
 
 	private static final String weixinOpenIdKey = "weixinOpenId";
-	private static final String weixinUnionIdKey = "weixinUnionIdKey";
+	private static final String weixinUnionIdKey = "weixinUnionId";
 	private static final String weixinNickNameKey = "weixinNickName";
 	private static final String userIdKey = "userId";
 	private static final String userMobilePhoneKey = "mobilePhone";
-
-	private static final String callBackUrl = "http://localhost:8088/weixin/personal/center.htm";
-	private static final String registerUrl = "http://localhost:8088/weixin/register.htm";
 
 	@Override
 	public void invoke(PipelineContext pipelineContext) throws Exception {
@@ -116,6 +113,12 @@ public class UserContextInitValve extends AbstractValve {
 		String code = rundata.getParameters().getString("code");
 		// 请求是否是从微信过来（state参数必须有，并且值为weixin1或weixin2）
 		boolean isWeixinRequest = StringUtils.isNotBlank(state) && ("weixin1".equals(state) || "weixin2".equals(state));
+		// 微信请求过来，把openId、unionId清空
+		if (isWeixinRequest) {
+			UserContext.putWeixinOpenId(null);
+			UserContext.putWeixinUnionId(null);
+		}
+
 		// 微信请求过来，并且code为空，用户不给授权
 		if (isWeixinRequest && StringUtils.isBlank(code)) {
 			// 去首页
@@ -134,20 +137,61 @@ public class UserContextInitValve extends AbstractValve {
 		PageAuthAccessToken pageAuthAccessToken = null;
 		// 微信过来的，且code不为空
 		if (isWeixinRequest && StringUtils.isNotBlank(code)) {
-			// 通过code获取access_toke & openId
-			pageAuthAccessToken = weixinHttpInteraction.queryPageAuthAccessToken(code);
-			UserContext.putWeixinOpenId(pageAuthAccessToken.getOpenid());
-			UserContext.putWeixinUnionId(pageAuthAccessToken.getUnionid());
+			try {
+				// 通过code获取access_toke & openId
+				pageAuthAccessToken = weixinHttpInteraction.queryPageAuthAccessToken(code);
+				UserContext.putWeixinOpenId(pageAuthAccessToken.getOpenid());
+				UserContext.putWeixinUnionId(pageAuthAccessToken.getUnionid());
+			} catch (Exception e) {
+				Logger.exp("SESSION_PROCESS", "根据微信callback回来里的code参数值去获取openId、accessToken", e, code, state);
+				// 跳到一个错误页面，再引导用户去刷新
+				request.setAttribute("ERR_CODE", "QUERY_WEIXIN_PAGE_AUTH_ACCESS_TOKEN_EXP");// 错误码
+				request.setAttribute("PRE_BIZ_DESC", "SESSION_PROCESS"); // 错误产生时正在执行的业务描述
+				rundata.setRedirectTarget("/error.vm");
+				return;
+			}
 		}
 
-		// openId不为空
+		// 如果openId还不存在，理论上不存在的情况
+		if (StringUtils.isBlank(UserContext.getWeixinOpenId())) {
+			// 跳到一个错误页面，再引导用户去刷新
+			request.setAttribute("ERR_CODE", "WEIXIN_USER_OPEN_ID_NOT_EXISTP");// 错误码
+			request.setAttribute("PRE_BIZ_DESC", "SESSION_PROCESS"); // 错误产生时正在执行的业务描述
+			rundata.setRedirectTarget("/error.vm");
+			return;
+		}
+		
+		// openId不为空(查询微信用户信息异常出现了导致的微信昵称没有，但是openid却在session里)
+		// 静默授权已经通过返回了code
 		if (StringUtils.isNotBlank(UserContext.getWeixinOpenId())) {
-			// 根据openId获取用户信息
-			UserWeixinInfoDO userWeixinInfo = userReadManager.queryUserWeixinInfo(UserContext.getWeixinOpenId());
+			UserWeixinInfoDO userWeixinInfo = null;
+			try {
+				// 根据openId获取用户信息
+				userWeixinInfo = userReadManager.queryUserWeixinInfo(UserContext.getWeixinOpenId());
+			} catch (Exception e) {
+				Logger.exp("SESSION_PROCESS", "根据微信openId获取数据库里的微信数据", e, UserContext.getWeixinOpenId());
+				// 跳到一个错误页面，再引导用户去刷新
+				request.setAttribute("ERR_CODE", "QUERY_USER_WEIXIN_INFO_EXP");// 错误码
+				request.setAttribute("PRE_BIZ_DESC", "SESSION_PROCESS"); // 错误产生时正在执行的业务描述
+				rundata.setRedirectTarget("/error.vm");
+				return;
+			}
+
 			// 已经拿到过微信信息，则不在需要和微信打交道了
 			if (userWeixinInfo != null) {
 				UserContext.putWeixinNickName(userWeixinInfo.getNickName());
-				UserInfoDO user = userReadManager.queryUserLoginInfo(userWeixinInfo.getUserId());
+				UserInfoDO user = null;
+				try {
+					user = userReadManager.queryUserInfo(userWeixinInfo.getUserId());
+				} catch (Exception e) {
+					Logger.exp("SESSION_PROCESS", "根据用户id获取平台用户数据", e, code, state);
+					// 跳到一个错误页面，再引导用户去刷新
+					request.setAttribute("ERR_CODE", "QUERY_USER_INFO_EXP");// 错误码
+					request.setAttribute("PRE_BIZ_DESC", "SESSION_PROCESS"); // 错误产生时正在执行的业务描述
+					rundata.setRedirectTarget("/error.vm");
+					return;
+				}
+
 				if (user != null) {
 					UserContext.putUserMobilePhone(user.getMobilePhone());
 					// 如果请求登记页面，默认跳转至个人中心
@@ -166,13 +210,34 @@ public class UserContextInitValve extends AbstractValve {
 				return;
 			} else {
 
-				// 先根据微信openId去获取下微信信息（已关注的用户是可以获取到得）
-				WeixinUser weixinUser = weixinHttpInteraction.queryWeixinUser(pageAuthAccessToken.getOpenid());
-				if (weixinUser == null && isWeixinRequest && "weixin2".equals(state) && pageAuthAccessToken != null) {
-					// 请求来自于微信，并且是用户手动点授权过来的
-					weixinUser = weixinHttpInteraction.queryWeixinUser(pageAuthAccessToken.getOpenid(), pageAuthAccessToken.getAccess_token());
+				WeixinUser weixinUser =null;
+				// 如果 先根据微信openId去获取下微信信息（已关注的用户是可以获取到得）
+				if (isWeixinRequest && "weixin1".equals(state) || !isWeixinRequest) {
+					try {
+						weixinUser = weixinHttpInteraction.queryWeixinUser(pageAuthAccessToken.getOpenid());
+					} catch (Exception e) {
+						Logger.exp("SESSION_PROCESS", "根据openid获取微信用户信息", e, code, state);
+						// 跳到一个错误页面，再引导用户去刷新
+						request.setAttribute("ERR_CODE", "QUERY_WEIXIN_USER_INFO_EXP");// 错误码
+						request.setAttribute("PRE_BIZ_DESC", "SESSION_PROCESS"); // 错误产生时正在执行的业务描述
+						rundata.setRedirectTarget("/error.vm");
+						return;
+					}
+				} else if (isWeixinRequest && "weixin2".equals(state) && pageAuthAccessToken != null) {
+					try {
+						// 请求来自于微信，并且是用户手动点授权过来的
+						weixinUser = weixinHttpInteraction.queryWeixinUser(pageAuthAccessToken.getOpenid(), pageAuthAccessToken.getAccess_token());
+					} catch (Exception e) {
+						Logger.exp("SESSION_PROCESS", "根据openid+accessToken获取微信用户信息", e, code, state);
+						// 跳到一个错误页面，再引导用户去刷新
+						request.setAttribute("ERR_CODE", "QUERY_WEIXIN_AUTH_USER_INFO_EXP");// 错误码
+						request.setAttribute("PRE_BIZ_DESC", "SESSION_PROCESS"); // 错误产生时正在执行的业务描述
+						rundata.setRedirectTarget("/error.vm");
+						return;
+					}
 				}
-
+				// 静默授权过来可能会为null
+				// 用户授权过来理论上不会为null
 				if (weixinUser != null) {
 					userWeixinInfo = userWriteManager.saveUserWeixinInfo(UserUtil.createUserWeixinInfo(weixinUser));
 					UserContext.putWeixinNickName(userWeixinInfo.getNickName());
@@ -182,7 +247,7 @@ public class UserContextInitValve extends AbstractValve {
 				}
 			}
 		}
-		
+
 		// 其他情况跳转至微信用户手动授权页面
 		rundata.setRedirectLocation(weixinHttpInteraction.queryBasePageAuthUrl(callbackUrl, "weixin2"));
 	}
